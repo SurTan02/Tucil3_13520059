@@ -1,10 +1,17 @@
+
+from ctypes import pointer
 import random
 import time
 
 
 
+def toString(mtrx):
+    word = ''
+    for x in mtrx:
+        for y in x:
+            word += "-" + (str(y))
 
-
+    return word
 
 def CopyMtrx(mtrx):
     temp = [[0 for i in range (4)] for j in range (4)]
@@ -125,9 +132,9 @@ def IsSolveable(mtrx) :
 def Cost(mtrx, depth):
     count = 0
     num = 1
-    for i in range (4):
-        for j in range (4):
-            if (mtrx[i][j]!= 16 and mtrx[i][j] != num):
+    for x in mtrx:
+        for y in x:
+            if (y != 16 and y != num):
                 count+=1
             num+=1
 
@@ -139,63 +146,64 @@ def GenerateNodes(currentNode, antrian, currentId, dict):
     posisi = Position(currentNode[2], 16)
     depth = currentNode[4] + 1
     found = False
-    
-    
-    if (posisi[1] != 0) and currentNode[-1] != 'd':     # MOVEUP
+   
+    if (posisi[0] != 0) and currentNode[-1] != 'd':     # MOVEUP
         temp = Up(currentNode[2])
         found = finished(temp) 
 
-        if (temp not in dict):
+        if (toString(temp) not in dict):
             if (found):
                 antrian.append([currentNode[1], currentId, temp ,0, depth, 'u'])
                 
             else:
                 antrian.append([currentNode[1], currentId, temp ,Cost(temp, depth), depth, 'u'])
 
-            dict[temp] = 'CHECK'
+            dict[toString(temp)] = 'CHECK'
             currentId+=1
+         
         
 
-    if (posisi[1] != 0) and currentNode[-1] != 'r' and not found: # MOVELEFT
+    if (posisi[1] != 0) and not found and currentNode[-1] != 'r': # MOVELEFT
         temp = Left(currentNode[2])
         found = finished(temp) 
 
-        if (temp not in dict):
+        if (toString(temp) not in dict):
             if (found):
                 antrian.append([currentNode[1], currentId, temp ,0, depth, 'l'])
             else:
                 antrian.append([currentNode[1], currentId, temp ,Cost(temp, depth), depth, 'l'])
         
-            dict[temp] = 'CHECK'
+            dict[toString(temp)] = 'CHECK'
             currentId+=1
-       
+           
 
-    if (posisi[0] != 3) and currentNode[-1] != 'u' and not found: # MOVEDOWN
+    if (posisi[0] != 3)  and not found and currentNode[-1] != 'u': # MOVEDOWN
         temp = Down(currentNode[2])
         found = finished(temp) 
 
-        if (temp not in dict):
+        if (toString(temp)not in dict):
             if (found):
                 antrian.append([currentNode[1], currentId, temp ,0, depth, 'd'])
             else:    
                 antrian.append([currentNode[1], currentId, temp ,Cost(temp, depth), depth, 'd'])
         
-            dict[temp] = 'CHECK'
+            dict[toString(temp)] = 'CHECK'
             currentId+=1
-       
+            
 
-    if (posisi[1] != 3) and currentNode[-1] != "l" and not found: # MOVERIGHT
+    if (posisi[1] != 3) and not found and currentNode[-1] != 'l': # MOVERIGHT
         temp = Right(currentNode[2])
         found = finished(temp) 
 
-        if (temp not in dict):
+        if (toString(temp) not in dict):
             if (found):
                 antrian.append([currentNode[1], currentId, temp ,0 , depth, 'r'])
             else:
                 antrian.append([currentNode[1], currentId, temp ,Cost(temp, depth), depth, 'r'])
         
-            dict[temp] = 'CHECK'
+            dict[toString(temp)] = 'CHECK'
             currentId+=1
+            
     return currentId
     
 def finished(mtrx):
@@ -260,21 +268,22 @@ def solve(mtrx):
     simpul= 1
     idx = 0
     
-    dict = { mtrx : 'CHECK'}
+    dict = { toString(mtrx) : 'CHECK'}
+    
     while (not finished(nodes[0][2])):
         currentNode = nodes.pop(0)
         visited.append(currentNode)
-
-        
         simpul =  GenerateNodes(currentNode, nodes,simpul, dict)
         idx+=1
-        
-        if (simpul % 1000 ==0 ):
+
+        if (simpul % 1000 == 0):
             print(simpul)
+        
+        
         nodes.sort(key = getCost)
         
     
-    print(simpul)
+    print("JUmlah simpul ",simpul)
     solusi = solution(nodes[0], visited)
     printSolution(mtrx, solusi)
     print(solusi)
@@ -304,15 +313,15 @@ if __name__ == "__main__":
     #                 [7,6,11,14],
     #                 [8,9,10,13]]
 
-    mtrx =         [[1,2,3,4], 
-                    [5,6,16,8],
-                    [9,10,7,11],
-                    [13,14,15,12]]
+    # mtrx =         [[1,2,3,4], 
+    #                 [5,6,16,8],
+    #                 [9,10,7,11],
+    #                 [13,14,15,12]]
 
-    mtrx =          [[1,2,4,7], 
-                    [5,6,16,3],
-                    [9,11,12,8],
-                    [13,10,14,15]]
+    # mtrx =          [[1,2,4,7], 
+    #                 [5,6,16,3],
+    #                 [9,11,12,8],
+    #                 [13,10,14,15]]
     
     
     # mtrx =         [[1,2,3,4], 
@@ -322,11 +331,12 @@ if __name__ == "__main__":
 
     # mtrx = [[2,3,4,11], [1,5,10,8], [9,6,12,15],  [13,14,16,7]]
     # mtrx = [[1,3,4,15], [2,16,12,5], [7,6,11,14],  [8,9,10,13]]
-    mtrx = [[1,2,3,4],[5,6,7,8],[11,12,15,14],[10,9,13,16]]
+    # mtrx = [[1,2,3,4],[5,6,7,8],[11,12,15,14],[10,9,13,16]]
     # mtrx = [[1,6,10,3],[5,12,7,4],[9,16,2,8],[13,14,11,15]]
-    mtrx = [[1,2,3,4],[5,6,7,11],[9,10,12,8],[13,14,15,16]]
+    # mtrx = [[1,2,3,4],[5,6,7,11],[9,10,12,8],[13,14,15,16]]
     
     mtrx = readFile()
+    toString(mtrx)
     Output(mtrx)
     if (not IsSolveable(mtrx)) :
         print("Matriks tidak dapat dikerjakan")
