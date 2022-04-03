@@ -1,18 +1,14 @@
-
-from ctypes import pointer
 import random
-import time
 
-
-
+# Fungsi untuk mengubah matriks ke dalam string
 def toString(mtrx):
     word = ''
     for x in mtrx:
         for y in x:
             word += "-" + (str(y))
-
     return word
 
+# Fungsi untuk melakukan peng-copy-an matriks
 def CopyMtrx(mtrx):
     temp = [[0 for i in range (4)] for j in range (4)]
     for i in range(4):
@@ -20,19 +16,23 @@ def CopyMtrx(mtrx):
             temp[i][j] = mtrx[i][j]
     return temp
 
+# fungsi untuk membuat matriks secara random
 def RandomizeMatrix():
-    temp = random.sample(range(1, 17), 16)
-    mtrx = [[0 for i in range (4)] for j in range (4)]
-
-    k = 0
-    for i in range (4):
-        for j in range(4):
-            
-            mtrx[i][j] = temp[k]
-            k +=1 
-
+    temp = random.sample(range(0,50), 50)
+    mtrx = [[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]
+    for i in range (len(temp)):
+        if temp[i] % 4 == 0:
+            mtrx = Up(mtrx)
+        elif temp[i] % 4 == 1:
+            mtrx = Left(mtrx)
+        elif temp[i] % 4 == 2:
+            mtrx = Down(mtrx)
+        else:
+            mtrx = Right(mtrx)   
+    
     return mtrx
 
+# Prosedur untuk mencetak matriks ke layar
 def Output(mtrx):
     
     for i in range (4):
@@ -43,12 +43,14 @@ def Output(mtrx):
                 print(str("-").rjust(4),end="")                
         print() 
 
+# Fungsi untuk mendapatkan posisi value pada matriks
 def Position(mtrx, value):
     for i in range(4):
         for j in range(4):
             if value == mtrx[i][j]:
                 return [i,j]
 
+# Fungsi yang mengembalikan matriks yang tile #16 dimove ke atas
 def Up(mtrx):
     nol = Position(mtrx, 16)
     tempMtrx = CopyMtrx(mtrx)
@@ -58,7 +60,8 @@ def Up(mtrx):
         tempMtrx[nol[0]-1][nol[1]] = 16
     
     return tempMtrx
-    
+
+# Fungsi yang mengembalikan matriks yang tile #16 dimove ke bawah
 def Down(mtrx):
     nol = Position(mtrx, 16)
     tempMtrx = CopyMtrx(mtrx)
@@ -70,6 +73,7 @@ def Down(mtrx):
 
     return tempMtrx
 
+# Fungsi yang mengembalikan matriks yang tile #16 dimove ke kiri
 def Left(mtrx):
     nol = Position(mtrx, 16)
     
@@ -81,6 +85,7 @@ def Left(mtrx):
     
     return tempMtrx
 
+# Fungsi yang mengembalikan matriks yang tile #16 dimove ke kanan
 def Right(mtrx):
     nol = Position(mtrx, 16)
     tempMtrx = CopyMtrx(mtrx)
@@ -91,7 +96,7 @@ def Right(mtrx):
     
     return tempMtrx
 
-
+# Fungsi untuk menghitung fungsi kurang pada tiap tile
 def Kurang(mtrx, num):
     count = 0
     posisi = Position(mtrx, num)    
@@ -107,6 +112,7 @@ def Kurang(mtrx, num):
                 count+=1
     return count
 
+# Fungsi untuk menentukan apakah puzzle solveable atau tidak
 def IsSolveable(mtrx) :
 
     sum = 0
@@ -129,81 +135,66 @@ def IsSolveable(mtrx) :
     else:
         return False
 
+# Fungsi untuk menghitung cost
 def Cost(mtrx, depth):
-    count = 0
-    num = 1
-    for x in mtrx:
-        for y in x:
-            if (y != 16 and y != num):
-                count+=1
-            num+=1
 
-    return count+depth
+    if (finished(mtrx)):
+        return 0
+    else:
+        count = 0
+        num = 1
+        for x in mtrx:
+            for y in x:
+                if (y != 16 and y != num):
+                    count+=1
+                num+=1
 
+        return count+depth
+
+# Fungsi yang mengembalikan matriks yang tile #16 dimove ke atas
 def GenerateNodes(currentNode, antrian, currentId, dict):
 
     # ParentId, currentId,  Matrix, Cost, Level, char
     posisi = Position(currentNode[2], 16)
     depth = currentNode[4] + 1
-    found = False
-   
-    if (posisi[0] != 0) and currentNode[-1] != 'd':     # MOVEUP
+    
+    tempCost = depth
+    if (posisi[0] != 0) and currentNode[-1] != 'd':         # Up
         temp = Up(currentNode[2])
-        found = finished(temp) 
+        tempCost = Cost(temp,depth) 
 
         if (toString(temp) not in dict):
-            if (found):
-                antrian.append([currentNode[1], currentId, temp ,0, depth, 'u'])
-                
-            else:
-                antrian.append([currentNode[1], currentId, temp ,Cost(temp, depth), depth, 'u'])
-
-            dict[toString(temp)] = 'CHECK'
+            antrian.append([currentNode[1], currentId, temp , tempCost , depth, 'u'])
+            dict[toString(temp)] = 'u'
             currentId+=1
          
-        
-
-    if (posisi[1] != 0) and not found and currentNode[-1] != 'r': # MOVELEFT
+    if (posisi[1] != 0)  and currentNode[-1] != 'r':        # Left
         temp = Left(currentNode[2])
-        found = finished(temp) 
+        tempCost = Cost(temp,depth) 
 
         if (toString(temp) not in dict):
-            if (found):
-                antrian.append([currentNode[1], currentId, temp ,0, depth, 'l'])
-            else:
-                antrian.append([currentNode[1], currentId, temp ,Cost(temp, depth), depth, 'l'])
-        
-            dict[toString(temp)] = 'CHECK'
+            antrian.append([currentNode[1], currentId, temp ,tempCost, depth, 'l'])
+            dict[toString(temp)] = 'l'
             currentId+=1
            
-
-    if (posisi[0] != 3)  and not found and currentNode[-1] != 'u': # MOVEDOWN
+    if (posisi[0] != 3)  and currentNode[-1] != 'u':        # Down
         temp = Down(currentNode[2])
-        found = finished(temp) 
+        tempCost = Cost(temp,depth) 
 
         if (toString(temp)not in dict):
-            if (found):
-                antrian.append([currentNode[1], currentId, temp ,0, depth, 'd'])
-            else:    
-                antrian.append([currentNode[1], currentId, temp ,Cost(temp, depth), depth, 'd'])
-        
-            dict[toString(temp)] = 'CHECK'
+            antrian.append([currentNode[1], currentId, temp , tempCost, depth, 'd'])
+            dict[toString(temp)] = 'd'
             currentId+=1
-            
 
-    if (posisi[1] != 3) and not found and currentNode[-1] != 'l': # MOVERIGHT
+    if (posisi[1] != 3) and  currentNode[-1] != 'l':        # Right
         temp = Right(currentNode[2])
-        found = finished(temp) 
+        tempCost = Cost(temp,depth) 
 
         if (toString(temp) not in dict):
-            if (found):
-                antrian.append([currentNode[1], currentId, temp ,0 , depth, 'r'])
-            else:
-                antrian.append([currentNode[1], currentId, temp ,Cost(temp, depth), depth, 'r'])
-        
-            dict[toString(temp)] = 'CHECK'
+            antrian.append([currentNode[1], currentId, temp ,tempCost, depth, 'r'])
+            dict[toString(temp)] = 'r'
             currentId+=1
-            
+
     return currentId
     
 def finished(mtrx):
@@ -218,24 +209,14 @@ def finished(mtrx):
 def getCost(antrian):
     return antrian[3];   
 
-def solution(currentNode, array):
-
+def solution(currentNode, visited):
     result = []
+
     while (currentNode[0] != 0):
         result.append(currentNode[-1])
-        i = 0
-        found = False
-        while  (i < len(array) and not found):
-            if currentNode[0] == array[i][1]:
-                currentNode = array.pop(i)
-                found = True
-            else:
-                i+=1 
-    
-    result.append(currentNode[-1])
-    
+        currentNode = visited[str(currentNode[0])]
 
-    
+    result.append(currentNode[-1])
     return result[::-1] 
 
 def printSolution(mtrx, solution):
@@ -243,6 +224,7 @@ def printSolution(mtrx, solution):
     print("Initial")
     Output(mtrx)
     i = 1
+    listOfMove = []
     for x in solution:
         if x == 'u':
             mtrx = Up(mtrx)
@@ -257,94 +239,45 @@ def printSolution(mtrx, solution):
             mtrx = Right(mtrx)
             move = 'RIGHT'
 
+        listOfMove.append(move)
         print("\nMove", i,":", move)
         Output(mtrx)
         i+=1
-
+   
+    print("\nMove yang diperlukan(%d) :" %(len(solution)) , end = " ")
+    print(*listOfMove,sep = ", ") 
+        
+    
 def solve(mtrx):
-    startTime = time.time()
     nodes = [[0,0,mtrx, 0, 0, '-']]
-    visited = []
-    simpul= 1
+    visited = {}
+    banyakSimpul= 1
     idx = 0
     
-    dict = { toString(mtrx) : 'CHECK'}
+    simpul = { toString(mtrx) : 'CHECK'}
     
     while (not finished(nodes[0][2])):
         currentNode = nodes.pop(0)
-        visited.append(currentNode)
-        simpul =  GenerateNodes(currentNode, nodes,simpul, dict)
+        visited[str(currentNode[1])] = currentNode
+        
+        banyakSimpul =  GenerateNodes(currentNode, nodes, banyakSimpul, simpul)
         idx+=1
-
-        if (simpul % 1000 == 0):
-            print(simpul)
-        
-        
         nodes.sort(key = getCost)
-        
-    
-    print("JUmlah simpul ",simpul)
-    solusi = solution(nodes[0], visited)
-    printSolution(mtrx, solusi)
-    print(solusi)
-    print("--- %s seconds ---" % (time.time() - startTime))
-
+    return nodes[0], visited, banyakSimpul
 
 def readFile():
      
-    
-    file = str(input("Nama File : "))
-        
-    try:
-        mtrx = open(file,"r")
-    except:
-        print("File not found, using default file...")
-        mtrx = open("t1.txt","r")
+    FileFound = False
+    while (not FileFound):
+        file = str(input("Nama File : "))
+        file = "../test/" + file
+        try:
+            mtrx = open(file,"r")
+            FileFound = True
+        except:
+            print("File Tidak Ditemukan")
     
     puzzle=[] # Menyimpan matrix
     for line in mtrx.readlines():
         puzzle.append( [ int (x) for x in line.split(' ') ] )
     return puzzle
-
-if __name__ == "__main__":
-    # # mtrx = (RandomizeMtrx())
-    # mtrx = [[1,3,4,15], 
-    #                 [2,16,5,12],
-    #                 [7,6,11,14],
-    #                 [8,9,10,13]]
-
-    # mtrx =         [[1,2,3,4], 
-    #                 [5,6,16,8],
-    #                 [9,10,7,11],
-    #                 [13,14,15,12]]
-
-    # mtrx =          [[1,2,4,7], 
-    #                 [5,6,16,3],
-    #                 [9,11,12,8],
-    #                 [13,10,14,15]]
-    
-    
-    # mtrx =         [[1,2,3,4], 
-    #                 [5,6,7,8],
-    #                 [9,10,11,12],
-    #                 [13,14,16,15]]
-
-    # mtrx = [[2,3,4,11], [1,5,10,8], [9,6,12,15],  [13,14,16,7]]
-    # mtrx = [[1,3,4,15], [2,16,12,5], [7,6,11,14],  [8,9,10,13]]
-    # mtrx = [[1,2,3,4],[5,6,7,8],[11,12,15,14],[10,9,13,16]]
-    # mtrx = [[1,6,10,3],[5,12,7,4],[9,16,2,8],[13,14,11,15]]
-    # mtrx = [[1,2,3,4],[5,6,7,11],[9,10,12,8],[13,14,15,16]]
-    
-    mtrx = readFile()
-    toString(mtrx)
-    Output(mtrx)
-    if (not IsSolveable(mtrx)) :
-        print("Matriks tidak dapat dikerjakan")
-    
-    else:
-    # check(mtrx)
-        solve(mtrx)
-
-
-        
-
